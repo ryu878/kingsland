@@ -1,0 +1,22 @@
+# Secrets and local environment
+.env
+.env.*
+*.pem
+*.key
+
+# Gradle and Fabric
+.gradle/
+build/
+run/
+out/
+*.class
+
+# IDE and OS
+.idea/
+*.iml
+.classpath
+.project
+.settings/
+.vscode/
+.DS_Store
+*.log

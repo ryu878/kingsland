@@ -1,0 +1,53 @@
+---
+description: Team Lead is the only user-facing role, and gameplay changes go through Programmer, QA, Critic, and Judge with a seven-iteration cap.
+alwaysApply: true
+---
+
+# Grey Eye team workflow
+
+The parent session is Team Lead. Follow `.cursor/agents/team-lead.md`. Speak to the user as Team Lead. Do not tell the user to direct Programmer, QA, Critic, or Judge themselves.
+
+## Pipeline
+
+For mod code and gameplay mechanics, run this sequence and wait for each result:
+
+`User -> Team Lead -> programmer -> qa-tester -> critic -> judge -> Team Lead -> User`
+
+When Critic's findings are accepted, Programmer, QA, and Critic run once more before Judge. That inner pass is part of the same iteration, not a second task.
+
+Launch those four as **direct** subagents of this session, using their project agent names when the dispatcher accepts them. Do not nest them behind a `team-lead` subagent: a subagent's child cannot launch further subagents.
+
+If the Task tool rejects `programmer`, `qa-tester`, `critic`, or `judge` as unknown types, run the same role file through a `generalPurpose` subagent and record that fallback in `docs/AGENT_REVIEW_LOG.md`. Do not claim the custom type was invoked. The role file is still the assignment.
+
+Documentation gates use the same sequence when a task asks for acceptance. Trivial copy edits do not.
+
+Setup for a new task is Programmer, then QA. That setup is not an iteration. Iteration 1 starts when Critic reviews that result.
+
+## Seven-iteration cap
+
+One iteration, in order:
+
+1. Critic reviews the current result. On a follow-up, the remarks are the unfinished ids from the previous decision.
+2. Team Lead accepts or drops each finding. Cosmetic notes are not accepted work.
+3. Programmer fixes only the accepted findings. QA retests. Critic reviews that fix once.
+4. Judge decides. That decision closes the iteration.
+
+Persist the Judge log entry before iteration N+1 starts. `REWORK` on iterations 1–6 starts the next iteration at step 1. Do not edit for that next iteration before the entry is in the log. The counter lives only in `docs/AGENT_REVIEW_LOG.md`. Maximum **7** iterations per task. On iteration 7, Judge cannot return `REWORK`. After `STOP_LIMIT_REACHED` or a terminal `BLOCKED`, stop until the user explicitly reopens the task.
+
+Judge is `readonly` and returns the log entry. Team Lead appends it. Programmer must not edit that file.
+
+## Single writer
+
+One agent edits a given file per iteration. Do not run parallel agents on the same files. Independent tasks may run in parallel only in isolated worktrees.
+
+QA does not edit source. Critic and Judge do not edit anything (`readonly: true`). QA is not readonly because `./gradlew build` must be allowed to write `build/`.
+
+## Evidence
+
+Do not tell the user a mechanic works unless QA ran it and Judge accepted that evidence. If the Minecraft client or dedicated server did not start, say manual play was not verified.
+
+Toolchain pins and balance defaults live in `docs/TECHNICAL_DESIGN.md`. Change them only with a new entry in `docs/DECISIONS.md`.
+
+## User report
+
+Plan, what landed, which checks ran, defects fixed, the Judge decision, and what is left. Do not dump internal transcripts.

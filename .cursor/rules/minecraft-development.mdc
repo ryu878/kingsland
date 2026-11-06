@@ -1,0 +1,33 @@
+---
+description: Fabric 26.3 conventions for the Grey Eye mod — server authority, client source set, and no fake mechanics.
+globs: "**/{*.java,*.gradle,*.kts,gradle.properties,fabric.mod.json,*.mixins.json}"
+alwaysApply: false
+---
+
+# Grey Eye Minecraft development
+
+Pins and package layout: `docs/TECHNICAL_DESIGN.md`. Read `.cursor/skills/minecraft-modding/SKILL.md` before changing the mod.
+
+## Rules
+
+- Minecraft **26.3**, Java **25**, Gradle **9.8.2**, Fabric Loader **0.20.1**, Loom **1.19-SNAPSHOT** (`net.fabricmc.fabric-loom`), Fabric API **0.165.0+26.3**.
+- Common code stays free of client-only classes. Flashlight rendering and LambDynamicLights live in the client source set and are optional.
+- World rules (roles, generators, wounds, stun, phase, gate) commit on the server. Sync with a full snapshot on join and on scene load, plus a delta when state changes.
+- Pure rules go in `dev.greyeye.logic` and have JUnit tests that do not start Minecraft.
+- Read balance from config. Do not scatter the numbers from the technical design through gameplay classes.
+- A missing feature stays unimplemented and is named in the Programmer report. Do not return success from a stub.
+
+## Example
+
+```java
+// Bad: the client decides the generator is repaired.
+if (level.isClientSide()) {
+    generator.markRepaired();
+}
+
+// Good: the client requests a channel. The server checks role, distance, and phase.
+// Repair rules live in dev.greyeye.logic.GeneratorState.
+server.execute(new RepairRequest(generatorId));
+```
+
+Verify Fabric API type names against the resolved 26.3 sources before copying older 1.21 snippets.
